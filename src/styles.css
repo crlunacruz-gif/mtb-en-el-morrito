@@ -1,0 +1,203 @@
+:root {
+  --sand: #e9dcc6;
+  --ink: #1d1a16;
+  --accent: #d0621c;
+  --font: 'Barlow Condensed', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #d3d3cd; color: var(--sand); font-family: var(--font); }
+#app, #app canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#hud { position: fixed; inset: 0; pointer-events: none; user-select: none; }
+
+/* --- SPEED (lo único visible durante el gameplay) --- */
+.hud-speed {
+  position: absolute; right: 28px; bottom: 22px;
+  display: flex; align-items: baseline; gap: 6px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  opacity: 0.92;
+}
+.hud-speed-val { font-size: 44px; font-weight: 700; letter-spacing: 0.02em; min-width: 2ch; text-align: right; }
+.hud-speed-unit { font-size: 15px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8; }
+
+/* --- Sólo en modo debug (G) --- */
+.hud-progress, .hud-section { display: none; }
+body.debug-on .hud-progress { display: block; }
+body.debug-on .hud-section { display: block; }
+.hud-progress { position: absolute; left: 28px; right: 28px; top: 16px; height: 2px; background: rgba(255, 255, 255, 0.2); }
+.hud-progress-bar { height: 100%; background: var(--sand); transform-origin: left; transform: scaleX(0); }
+.hud-section {
+  position: absolute; left: 28px; top: 28px; font-size: 18px; font-weight: 700; letter-spacing: 0.25em;
+  opacity: 0; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+.hud-section.show { animation: sectionIn 2.6s ease forwards; }
+@keyframes sectionIn { 0% { opacity: 0; transform: translateY(4px); } 15% { opacity: 0.9; transform: none; } 70% { opacity: 0.9; } 100% { opacity: 0; } }
+
+.debug {
+  position: absolute; left: 12px; bottom: 12px; padding: 10px 12px;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre;
+  color: #f4efe6; background: rgba(20, 18, 15, 0.55); border-radius: 6px;
+}
+
+/* --- Overlays --- */
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: auto;
+  background: radial-gradient(ellipse at center, rgba(30, 24, 18, 0.15), rgba(30, 24, 18, 0.55));
+}
+.overlay[hidden] { display: none; }
+.overlay-inner { text-align: center; padding: 0 16px; max-width: 640px; }
+.kicker { font-size: 14px; font-weight: 500; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.85; }
+.overlay h1 { white-space: nowrap; font-size: clamp(44px, 9vw, 112px); font-weight: 800; letter-spacing: 0.02em; margin: 6px 0 18px; line-height: 0.9; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35); }
+.overlay h2 { font-size: clamp(48px, 9vw, 96px); font-weight: 800; margin: 6px 0 8px; line-height: 1; }
+.overlay p { font-size: 18px; margin: 0 0 22px; letter-spacing: 0.04em; }
+.overlay button {
+  font-family: var(--font); font-size: 22px; font-weight: 700; letter-spacing: 0.25em;
+  color: var(--ink); background: var(--sand); border: 0; padding: 14px 34px; border-radius: 2px; cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.overlay button:hover, .overlay button:focus-visible { background: #fff; transform: translateY(-1px); outline: none; }
+.controls { margin-top: 26px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; font-size: 15px; letter-spacing: 0.08em; opacity: 0.85; }
+.controls b { display: inline-block; min-width: 20px; padding: 1px 5px; border: 1px solid rgba(233, 220, 198, 0.6); border-radius: 3px; font-weight: 700; }
+
+.lil-gui.root { position: fixed; top: 12px; right: 12px; z-index: 10; }
+
+@media (max-width: 600px) {
+  .hud-speed { right: 16px; bottom: 14px; }
+  .hud-speed-val { font-size: 36px; }
+}
+
+/* --- Milestone 2: mensajes --- */
+.hud-center {
+  position: absolute; left: 0; right: 0; top: 38%; text-align: center;
+  font-size: clamp(40px, 8vw, 88px); font-weight: 800; letter-spacing: 0.08em;
+  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.45);
+}
+.hud-center.crash { color: #f2e6d4; letter-spacing: 0.18em; }
+.hud-center.count { font-size: clamp(56px, 12vw, 130px); }
+.hud-center.go { font-size: clamp(30px, 6vw, 64px); letter-spacing: 0.2em; }
+.hud-toast {
+  position: absolute; left: 0; right: 0; bottom: 84px; text-align: center;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.3em; opacity: 0;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
+.hud-toast.show { animation: toastIn 1.4s ease forwards; }
+@keyframes toastIn { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 0.85; transform: none; } 70% { opacity: 0.85; } 100% { opacity: 0; } }
+.finish-lines { font-size: 16px; opacity: 0.9; }
+.line-chip { display: inline-block; margin: 3px 2px; padding: 2px 8px; border: 1px solid rgba(233, 220, 198, 0.6); border-radius: 2px; letter-spacing: 0.06em; }
+.controls { max-width: 560px; margin-inline: auto; }
+@media (prefers-reduced-motion: reduce) { .hud-toast.show, .hud-section.show { animation-duration: 0.01s; } }
+
+/* selector de clima en la intro */
+.weather-pick { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 20px; }
+.overlay .weather-pick button {
+  font-size: 15px; letter-spacing: 0.14em; padding: 7px 14px; text-transform: uppercase;
+  background: rgba(233, 220, 198, 0.12); color: var(--sand); border: 1px solid rgba(233, 220, 198, 0.55);
+}
+.overlay .weather-pick button.on { background: var(--sand); color: var(--ink); }
+
+/* =====================================================================
+   MENÚ (estilo consola): pestañas RUTA / GARAGE, tarjetas, showroom
+   ===================================================================== */
+.overlay-intro { place-items: stretch; background: linear-gradient(180deg, rgba(14, 12, 10, 0.55) 0%, rgba(14, 12, 10, 0.15) 30%, rgba(14, 12, 10, 0.25) 60%, rgba(14, 12, 10, 0.82) 100%); }
+.menu { position: relative; height: 100%; display: grid; grid-template-rows: auto 1fr auto; padding: 22px clamp(16px, 4vw, 48px) 20px; gap: 14px; animation: menuIn 0.6s ease both; }
+@keyframes menuIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.menu-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; flex-direction: column; line-height: 0.85; }
+.brand-main { font-size: clamp(30px, 4.4vw, 56px); font-weight: 800; letter-spacing: 0.01em; text-shadow: 0 4px 26px rgba(0, 0, 0, 0.45); }
+.brand-sub { font-size: 13px; font-weight: 700; letter-spacing: 0.42em; color: var(--accent); margin-top: 6px; }
+.menu-tabs { display: flex; align-items: center; gap: 6px; background: rgba(12, 11, 10, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(233, 220, 198, 0.16); border-radius: 999px; padding: 5px 8px; }
+.menu-tabs kbd, .btn-start kbd { font: 700 11px var(--font); letter-spacing: 0.08em; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(233, 220, 198, 0.45); color: rgba(233, 220, 198, 0.8); }
+.overlay .menu-tabs button { font-size: 16px; letter-spacing: 0.24em; text-transform: uppercase; padding: 8px 22px; border-radius: 999px; background: transparent; color: rgba(233, 220, 198, 0.7); }
+.overlay .menu-tabs button.on { background: var(--sand); color: var(--ink); }
+.menu-status { display: flex; align-items: center; gap: 8px; font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.9; }
+.menu-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #7fd36b; box-shadow: 0 0 10px #7fd36b; }
+.menu-status.busy .dot { background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 0.8s ease-in-out infinite alternate; }
+@keyframes pulse { to { opacity: 0.3; } }
+.tab { min-height: 0; display: flex; align-items: flex-end; }
+.tab[hidden] { display: none; }
+
+/* --- tarjetas de ruta --- */
+.route-cards { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 1.6vw, 22px); align-items: end; }
+.overlay .route-card {
+  all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden;
+  background: rgba(16, 14, 12, 0.62); backdrop-filter: blur(14px); border: 1px solid rgba(233, 220, 198, 0.14);
+  color: var(--sand); text-align: left; transition: transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.2s, box-shadow 0.25s, opacity 0.2s; opacity: 0.78;
+}
+.overlay .route-card:hover { opacity: 0.95; transform: translateY(-3px); }
+.overlay .route-card.on { opacity: 1; transform: translateY(-10px) scale(1.02); border-color: var(--accent); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(208, 98, 28, 0.55); }
+.overlay .route-card:focus-visible { outline: 2px solid var(--sand); outline-offset: 3px; }
+.rc-art { position: relative; height: clamp(70px, 12vh, 120px); background: linear-gradient(180deg, #a9c3d6 0%, #e4d8c2 100%); }
+.rc-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rc-num { position: absolute; left: 14px; top: 8px; font-size: 34px; font-weight: 800; color: rgba(255, 255, 255, 0.85); text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3); }
+.rc-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.rc-place { font-size: 12px; font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); }
+.rc-name { font-size: clamp(24px, 2.6vw, 34px); font-weight: 800; line-height: 1; letter-spacing: 0.01em; }
+.rc-blurb { font-size: 15px !important; line-height: 1.3; margin: 2px 0 4px !important; letter-spacing: 0.02em !important; opacity: 0.86; }
+.rc-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.rc-tags span { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: rgba(233, 220, 198, 0.12); }
+.rc-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.9; }
+.rc-diff { display: inline-flex; align-items: center; gap: 4px; }
+.rc-diff i { width: 14px; height: 5px; border-radius: 2px; background: rgba(233, 220, 198, 0.22); }
+.rc-diff i.on { background: var(--accent); }
+
+/* --- garage --- */
+.tab-garage { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: clamp(12px, 2vw, 28px); align-items: stretch; }
+.tab-garage[hidden] { display: none; }
+.garage-stage { position: relative; border-radius: 16px; overflow: hidden; background: radial-gradient(ellipse at 50% 70%, rgba(233, 220, 198, 0.2), rgba(16, 14, 12, 0.55) 70%); backdrop-filter: blur(6px); border: 1px solid rgba(233, 220, 198, 0.12); min-height: 260px; }
+.garage-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.garage-canvas:active { cursor: grabbing; }
+.garage-hint { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.6; pointer-events: none; }
+.garage-panel { align-self: end; background: rgba(16, 14, 12, 0.66); backdrop-filter: blur(14px); border: 1px solid rgba(233, 220, 198, 0.14); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; max-height: 100%; overflow: auto; }
+.gp-title { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.gp-row { padding: 7px 10px; border-radius: 10px; border: 1px solid transparent; transition: background 0.15s, border-color 0.15s; }
+.gp-row.focus { background: rgba(233, 220, 198, 0.08); border-color: rgba(233, 220, 198, 0.2); }
+.gp-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 6px; }
+.gp-value { font-weight: 500; letter-spacing: 0.08em; opacity: 0.75; text-transform: none; font-size: 14px; }
+.gp-swatches { display: flex; flex-wrap: wrap; gap: 7px; }
+.overlay .sw { all: unset; box-sizing: border-box; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; background: var(--c); border: 2px solid rgba(255, 255, 255, 0.25); box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.3), inset 0 3px 6px rgba(255, 255, 255, 0.18); transition: transform 0.15s; }
+.overlay .sw:hover { transform: scale(1.1); }
+.overlay .sw.on { border-color: var(--sand); box-shadow: 0 0 0 3px rgba(208, 98, 28, 0.85), inset 0 -4px 8px rgba(0, 0, 0, 0.3); transform: scale(1.08); }
+.overlay .kit { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; letter-spacing: 0.06em; padding: 5px 10px 5px 6px; border-radius: 999px; border: 1px solid rgba(233, 220, 198, 0.25); }
+.overlay .kit i { width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--c) 55%, var(--g) 55%); }
+.overlay .kit.on { background: var(--sand); color: var(--ink); }
+
+/* --- barra inferior --- */
+.menu-bottom { display: flex; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap; }
+.menu-bottom .weather-pick { margin: 0; align-items: center; }
+.wp-label { font-size: 12px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.7; margin-right: 4px; }
+.menu-bottom .controls { margin: 0; font-size: 13px; gap: 6px 14px; max-width: none; flex: 1; justify-content: center; }
+.controls b + b { margin-left: 3px; }
+.overlay .btn-start { display: inline-flex; align-items: center; gap: 12px; font-size: 26px; letter-spacing: 0.22em; padding: 14px 30px 14px 36px; border-radius: 999px; background: var(--accent); color: #fff; box-shadow: 0 10px 30px rgba(208, 98, 28, 0.45); }
+.overlay .btn-start:hover, .overlay .btn-start:focus-visible { background: #e57027; }
+.overlay .btn-start kbd { color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.6); }
+.overlay .btn-start[hidden] { display: none; }
+.finish-btns { display: flex; gap: 10px; justify-content: center; }
+.overlay button.ghost { background: transparent; color: var(--sand); border: 1px solid rgba(233, 220, 198, 0.6); }
+body.in-menu .hud-speed { opacity: 0; }
+
+@media (max-width: 900px) {
+  .route-cards { grid-template-columns: 1fr; gap: 8px; overflow: auto; max-height: 100%; }
+  .rc-art { display: none; }
+  .rc-blurb { display: none; }
+  .overlay .route-card.on { transform: none; }
+  .tab-garage { grid-template-columns: 1fr; grid-template-rows: minmax(180px, 1fr) auto; }
+  .menu-bottom .controls { display: none; }
+}
+.overlay button.sw, .overlay button.sw:hover, .overlay button.sw:focus-visible { background: var(--c); }
+.overlay button.route-card, .overlay button.route-card:hover, .overlay button.route-card:focus-visible { background: rgba(16, 14, 12, 0.62); }
+.overlay button.kit:hover, .overlay button.kit:focus-visible { background: rgba(233, 220, 198, 0.15); }
+.overlay button.kit.on, .overlay button.kit.on:hover { background: var(--sand); color: var(--ink); }
+.overlay button.sw:focus-visible, .overlay button.kit:focus-visible { outline: 2px solid var(--sand); outline-offset: 2px; }
+.brand-sub { margin-top: 12px; }
+.tab { overflow: hidden; }
+.tab-garage { min-height: 0; height: 100%; }
+.garage-panel { min-height: 0; align-self: stretch; gap: 0; padding: 12px 16px; }
+.gp-title { font-size: 20px; }
+.gp-row { padding: 5px 10px; }
+.gp-label { margin-bottom: 4px; }
+.overlay .sw { width: 26px; height: 26px; }
+.menu-bottom { flex-wrap: nowrap; }
+.menu-bottom .controls { display: none; }
+@media (min-width: 1500px) { .menu-bottom .controls { display: flex; } }
+.menu-bottom .weather-pick button { padding: 6px 12px; font-size: 14px; }
+@media (max-width: 900px) { .menu-bottom { flex-wrap: wrap; } }

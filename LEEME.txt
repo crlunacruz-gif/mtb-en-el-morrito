@@ -1,0 +1,9 @@
+Archivos para iniciar Ride the Line: Morro Solar en Claude
+
+1. Sube `PROMPT_MAESTRO.md`
+2. Sube también `referencia-pov-morro-solar.png`
+3. Dile a Claude:
+
+“Lee el prompt completo y usa la imagen adjunta como referencia visual. Empieza únicamente con Milestone 1 y detente al terminarlo.”
+
+Recomendación: si usas Claude Code, crea una carpeta nueva para el proyecto y dale acceso a esa carpeta para que pueda crear y editar los archivos directamente.
